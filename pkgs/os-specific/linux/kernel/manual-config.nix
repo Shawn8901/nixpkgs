@@ -206,6 +206,9 @@ let
         for i in $(find arch -name install.sh); do
             patchShebangs "$i"
         done
+      '' + lib.optionalString (lib.versionAtLeast version "5.13") ''
+        substituteInPlace scripts/Makefile.modinst \
+          --replace-fail '$(ZSTD) -T0' '$(ZSTD) -T0 -19 --long'
       '';
 
       configurePhase = ''
