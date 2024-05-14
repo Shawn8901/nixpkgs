@@ -29,17 +29,13 @@ vscode-utils.buildVscodeMarketplaceExtension rec {
 
   nativeBuildInputs = [ python3.pkgs.wrapPython ];
 
-  propagatedBuildInputs = with python3.pkgs; [
-    debugpy
-    jedi-language-server
-  ];
+  propagatedBuildInputs = [ python3.pkgs.jedi-language-server ];
 
   postPatch =
     ''
       # remove bundled python deps and use libs from nixpkgs
       rm -r python_files/lib
       mkdir -p python_files/lib/python/
-      ln -s ${python3.pkgs.debugpy}/lib/*/site-packages/debugpy python_files/lib/python/
       buildPythonPath "$propagatedBuildInputs"
       for i in python_files/*.py; do
         patchPythonScript "$i"
@@ -92,9 +88,9 @@ vscode-utils.buildVscodeMarketplaceExtension rec {
       "aarch64-darwin"
       "x86_64-darwin"
     ];
-    maintainers = [
-      lib.maintainers.jraygauthier
-      lib.maintainers.jfchevrette
+    maintainers = with lib.maintainers; [
+      jraygauthier
+      jfchevrette
     ];
   };
 }
