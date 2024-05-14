@@ -3426,6 +3426,23 @@ let
 
       ms-python.black-formatter = callPackage ./ms-python.black-formatter { };
 
+      ms-python.autopep8 = buildVscodeMarketplaceExtension {
+        mktplcRef = {
+          name = "autopep8";
+          publisher = "ms-python";
+          version = "2024.2.0";
+          hash = "sha256-wTu1NphGoecl4kWNGJBK4RyldoEaWcN01v6zD0g2Zh8=";
+        };
+        buildInputs = [ python3Packages.autopep8 ];
+        meta = with lib; {
+          description = "Formatting support for Python files using the autopep8 formatter.";
+          downloadPage = "https://marketplace.visualstudio.com/items?itemName=ms-python.autopep8";
+          homepage = "https://github.com/microsoft/vscode-autopep8";
+          license = licenses.mit;
+          maintainers = with maintainers; [ shawn8901 ];
+        };
+      };
+
       ms-python.flake8 = callPackage ./ms-python.flake8 { };
 
       ms-python.isort = callPackage ./ms-python.isort { };
