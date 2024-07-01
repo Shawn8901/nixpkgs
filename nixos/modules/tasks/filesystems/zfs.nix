@@ -176,7 +176,7 @@ let
                   tries=3
                   success=false
                   while [[ $success != true ]] && [[ $tries -gt 0 ]]; do
-                    ${systemd}/bin/systemd-ask-password --timeout=${toString cfgZfs.passwordTimeout} "Enter key for $ds:" | ${cfgZfs.package}/sbin/zfs load-key "$ds" \
+                    ${systemd}/bin/systemd-ask-password ${lib.optionalString cfgZfs.useKeyringForCredentials("--keyname=zfs-$ds")} --timeout=${toString cfgZfs.passwordTimeout} "Enter key for $ds:" | ${cfgZfs.package}/sbin/zfs load-key "$ds" \
                       && success=true \
                       || tries=$((tries - 1))
                   done
@@ -324,6 +324,8 @@ in
           an interactive prompt (keylocation=prompt) and from a file (keylocation=file://).
         '';
       };
+
+      useKeyringForCredentials = lib.mkEnableOption "Uses the kernel keyring for encryption credentials with keyname=zfs-<poolame>";
 
       passwordTimeout = lib.mkOption {
         type = lib.types.int;
