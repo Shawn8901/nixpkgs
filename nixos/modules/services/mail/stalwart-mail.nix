@@ -132,10 +132,6 @@ in
       };
     };
 
-    systemd.tmpfiles.rules = [
-      "d '${cfg.dataDir}' - stalwart-mail stalwart-mail - -"
-    ];
-
     systemd = {
       packages = [ cfg.package ];
       services.stalwart-mail = {
@@ -144,16 +140,6 @@ in
           "local-fs.target"
           "network.target"
         ];
-
-        preStart =
-          if useLegacyStorage then
-            ''
-              mkdir -p ${cfg.dataDir}/data/blobs
-            ''
-          else
-            ''
-              mkdir -p ${cfg.dataDir}/db
-            '';
 
         serviceConfig = {
           ExecStart = [
@@ -214,6 +200,17 @@ in
           ""
           "${configFile}"
         ];
+      };
+
+      tmpfiles = {
+        rules = [
+          "d '${cfg.dataDir}' - stalwart-mail stalwart-mail - -"
+        ];
+        settings."stalwart-mail"."${cfg.dataDir}/${if useLegacyStorage then "data/blobs" else "db"}".d = {
+          group = "stalwart-mail";
+          mode = "700";
+          user = "stalwart-mail";
+        };
       };
     };
 
