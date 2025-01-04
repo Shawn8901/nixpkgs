@@ -83,7 +83,7 @@ in
 
     basicAuthPasswordFile = lib.mkOption {
       default = null;
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.nullOr lib.types.path;
       description = ''
         File that contains the Basic Auth password used to protect VictoriaMetrics instance by authorization
       '';
