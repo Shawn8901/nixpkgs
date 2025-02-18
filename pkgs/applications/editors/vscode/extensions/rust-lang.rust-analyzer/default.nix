@@ -4,7 +4,7 @@
   vscode-utils,
   jq,
   rust-analyzer,
-  nodePackages,
+  buildNpmPackage,
   moreutils,
   esbuild,
   pkg-config,
@@ -30,19 +30,14 @@ let
     hash = "sha256-STmaV9Zu74QtkGGrbr9uMhskwagfCjJqOAYapXabiuk=";
   };
 
-  build-deps =
-    nodePackages."rust-analyzer-build-deps-../../applications/editors/vscode/extensions/rust-lang.rust-analyzer/build-deps";
-  # FIXME: Making a new derivation to link `node_modules` and run `npm run package`
-  # will cause a build failure.
-  vsix = build-deps.override {
+  vsix = buildNpmPackage {
+    inherit pname releaseTag;
+    version = lib.trim (lib.readFile ./version.txt);
     src = "${src}/editors/code";
-    outputs = [
-      "vsix"
-      "out"
+    npmDepsHash = "sha256-EtkgnNOAKDQP7BDHI667SPu73tYrz1Hq6TmeeObXnf4=";
+    buildInputs = [
+      libsecret
     ];
-
-    inherit releaseTag;
-
     nativeBuildInputs =
       [
         jq
@@ -50,7 +45,6 @@ let
         esbuild
         # Required by `keytar`, which is a dependency of `vsce`.
         pkg-config
-        libsecret
       ]
       ++ lib.optionals stdenv.hostPlatform.isDarwin [
         darwin.apple_sdk.frameworks.AppKit
@@ -58,7 +52,7 @@ let
       ];
 
     # Follows https://github.com/rust-lang/rust-analyzer/blob/41949748a6123fd6061eb984a47f4fe780525e63/xtask/src/dist.rs#L39-L65
-    postRebuild = ''
+    installPhase = ''
       jq '
         .version = $ENV.version |
         .releaseTag = $ENV.releaseTag |
@@ -66,10 +60,11 @@ let
         walk(del(.["$generated-start"]?) | del(.["$generated-end"]?))
       ' package.json | sponge package.json
 
-      mkdir -p $vsix
-      npx vsce package -o $vsix/${pname}.zip
+      mkdir -p $out
+      npx vsce package -o $out/${pname}.zip
     '';
   };
+
 in
 vscode-utils.buildVscodeExtension {
   inherit version vsix pname;
