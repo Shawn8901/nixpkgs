@@ -138,9 +138,6 @@ in stdenv.mkDerivation {
 
   patches = [
     ./opencl.patch
-    # cherry-picked from https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/32719
-    # safe to remove for versions > 24.3.2
-    ./cross_clc.patch
   ];
 
   postPatch = ''
@@ -208,12 +205,12 @@ in stdenv.mkDerivation {
     # Enable Intel RT stuff when available
     (lib.mesonBool "install-intel-clc" true)
     (lib.mesonBool "install-mesa-clc" true)
+    (lib.mesonBool "install-precomp-compiler" true)
     (lib.mesonEnable "intel-rt" stdenv.hostPlatform.isx86_64)
     (lib.mesonOption "clang-libdir" "${lib.getLib llvmPackages.clang-unwrapped}/lib")
 
     # Clover, old OpenCL frontend
     (lib.mesonOption "gallium-opencl" "icd")
-    (lib.mesonBool "opencl-spirv" true)
 
     # Rusticl, new OpenCL frontend
     (lib.mesonBool "gallium-rusticl" true)
@@ -227,6 +224,7 @@ in stdenv.mkDerivation {
   ] ++ lib.optionals needNativeCLC [
     (lib.mesonOption "intel-clc" "system")
     (lib.mesonOption "mesa-clc" "system")
+    (lib.mesonOption "precomp-compiler" "system")
   ];
 
   strictDeps = true;
@@ -339,6 +337,7 @@ in stdenv.mkDerivation {
 
     moveToOutput bin/intel_clc $driversdev
     moveToOutput bin/mesa_clc $driversdev
+    moveToOutput bin/vtn_bindgen $driversdev
     moveToOutput lib/gallium-pipe $opencl
     moveToOutput "lib/lib*OpenCL*" $opencl
     moveToOutput "lib/libOSMesa*" $osmesa
