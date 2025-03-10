@@ -1,6 +1,6 @@
 {
   lib,
-  buildGo124Module,
+  buildGoModule,
   fetchFromGitHub,
   nixosTests,
   withServer ? true, # the actual metrics server
@@ -12,7 +12,7 @@
   withVictoriaLogs ? true, # logs server
 }:
 
-buildGo124Module rec {
+buildGoModule rec {
   pname = "VictoriaMetrics";
   version = "1.113.0";
 
