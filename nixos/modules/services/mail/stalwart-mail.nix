@@ -148,7 +148,7 @@ in
         serviceConfig = {
           ExecStart = [
             ""
-            "${cfg.package}/bin/stalwart-mail --config=${configFile}"
+            "${lib.getExe cfg.package} --config=${configFile}"
           ];
           LoadCredential = lib.mapAttrsToList (key: value: "${key}:${value}") cfg.credentials;
 
@@ -160,6 +160,10 @@ in
           ];
           CacheDirectory = "stalwart-mail";
           StateDirectory = "stalwart-mail";
+
+          # Upstream uses "stalwart" as the username since 0.12.0
+          User = "stalwart-mail";
+          Group = "stalwart-mail";
 
           # Bind standard privileged ports
           AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
