@@ -44,13 +44,26 @@ in
         This directory will be created automatically using systemd's StateDirectory mechanism.
       '';
     };
+    basicAuthUsername = lib.mkOption {
+      default = null;
+      type = lib.types.nullOr lib.types.str;
+      description = ''
+        Basic Auth username used to protect VictoriaLogs instance by authorization
+      '';
+    };
+
+    basicAuthPasswordFile = lib.mkOption {
+      default = null;
+      type = lib.types.nullOr lib.types.str;
+      description = ''
+        File that contains the Basic Auth password used to protect VictoriaLogs instance by authorization
+      '';
+    };
     extraOptions = mkOption {
       type = types.listOf types.str;
       default = [ ];
       example = literalExpression ''
         [
-          "-httpAuth.username=username"
-          "-httpAuth.password=file:///abs/path/to/file"
           "-loggerLevel=WARN"
         ]
       '';
@@ -68,8 +81,17 @@ in
       startLimitBurst = 5;
 
       serviceConfig = {
-        ExecStart = escapeShellArgs startCLIList;
+        ExecStart = escapeShellArgs (
+          startCLIList
+          ++ lib.optional (cfg.basicAuthUsername != null) "-httpAuth.username=${cfg.basicAuthUsername}"
+          ++ lib.optional (
+            cfg.basicAuthPasswordFile != null
+          ) "-httpAuth.password=file://\${CREDENTIALS_DIRECTORY}/basic_auth_password"
+        );
         DynamicUser = true;
+        LoadCredential = lib.optional (cfg.basicAuthPasswordFile != null) [
+          "basic_auth_password:${cfg.basicAuthPasswordFile}"
+        ];
         RestartSec = 1;
         Restart = "on-failure";
         RuntimeDirectory = "victorialogs";
