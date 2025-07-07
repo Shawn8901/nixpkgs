@@ -4,6 +4,8 @@
   fetchFromGitHub,
   nix-update-script,
   nixosTests,
+  withServer ? true,
+  withVlAgent ? false,
 }:
 
 buildGoModule (finalAttrs: {
@@ -19,14 +21,16 @@ buildGoModule (finalAttrs: {
 
   vendorHash = null;
 
-  subPackages = [
-    "app/victoria-logs"
-    "app/vlinsert"
-    "app/vlselect"
-    "app/vlstorage"
-    "app/vlogsgenerator"
-    "app/vlogscli"
-  ];
+  subPackages =
+    lib.optionals withServer [
+      "app/victoria-logs"
+      "app/vlinsert"
+      "app/vlselect"
+      "app/vlstorage"
+      "app/vlogsgenerator"
+      "app/vlogscli"
+    ]
+    ++ lib.optionals withVlAgent [ "app/vlagent" ];
 
   ldflags = [
     "-s"
