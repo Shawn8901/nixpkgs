@@ -147,6 +147,19 @@ in
       );
     };
 
+    settingsFile = mkOption {
+      default = null;
+      description = ''
+        JSON file with additional configuration for Immich.
+        This file is recursively merged into the file generated from
+        {option}`settings`.
+        The immich user needs to have read permissions for the file.
+        This option is useful for specifying secrets that should not end up in
+        the Nix store such as `oauth.clientSecret`.
+      '';
+      type = types.nullOr types.path;
+    };
+
     machine-learning = {
       enable =
         mkEnableOption "immich's machine-learning functionality to detect faces and search for objects"
@@ -352,8 +365,8 @@ in
         IMMICH_MEDIA_LOCATION = cfg.mediaLocation;
         IMMICH_MACHINE_LEARNING_URL = "http://localhost:3003";
       }
-      // lib.optionalAttrs (cfg.settings != null) {
-        IMMICH_CONFIG_FILE = "${format.generate "immich.json" cfg.settings}";
+      // lib.optionalAttrs (cfg.settings != null || cfg.settingsFile != null) {
+        IMMICH_CONFIG_FILE = "/run/immich/config.json";
       };
 
     services.immich.machine-learning.environment = {
@@ -381,6 +394,33 @@ in
         pkgs.gzip
         postgresqlPackage
       ];
+
+      preStart =
+        (
+          if cfg.settings == null then
+            ''
+              settings="$(mktemp)"
+              echo '{}' > "$settings"
+            ''
+          else
+            ''
+              settings='${format.generate "immich-config.json" cfg.settings}'
+            ''
+        )
+        + (
+          if cfg.settingsFile == null then
+            ''
+              settingsFile="$(mktemp)"
+              echo '{}' > "$settingsFile"
+            ''
+          else
+            ''
+              settingsFile='${cfg.settingsFile}'
+            ''
+        )
+        + ''
+          ${lib.getExe pkgs.jq} -s '.[0] * .[1]' "$settings" "$settingsFile" > /run/immich/config.json
+        '';
 
       serviceConfig = commonServiceConfig // {
         ExecStart = lib.getExe cfg.package;

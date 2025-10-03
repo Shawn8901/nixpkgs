@@ -17,6 +17,20 @@
       services.immich = {
         enable = true;
         environment.IMMICH_LOG_LEVEL = "verbose";
+        settings.backup.database = {
+          enabled = true;
+          cronExpression = "ivalid";
+        };
+        settingsFile = pkgs.writeText "immich-config.json" ''
+          {
+            "backup": {
+              "database": {
+                "cronExpression": "0 02 * * *",
+                "keepLastAmount": 14
+              }
+            }
+          }
+      '';
       };
     };
 
@@ -24,6 +38,8 @@
     import json
 
     machine.wait_for_unit("immich-server.service")
+
+    machine.succeed("stat -L -c '%a %U %G' /run/immich/config.json | grep '600 immich immich'")
 
     machine.wait_for_open_port(2283) # Server
     machine.wait_for_open_port(3003) # Machine learning
