@@ -67,6 +67,12 @@ in
       description = "Enable Node provider.";
     };
 
+    waylandSupport = lib.mkOption {
+      type = lib.types.bool;
+      default = pkgs.stdenv.hostPlatform.isLinux;
+      description = "Enable Wayland support.";
+    };
+
     configure = lib.mkOption {
       type = lib.types.attrs;
       default = { };
@@ -188,6 +194,7 @@ in
         withPython3
         withNodeJs
         withRuby
+        waylandSupport
         configure
         ;
     };
