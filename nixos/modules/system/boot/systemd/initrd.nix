@@ -192,9 +192,6 @@ in
         );
     in
     [
-      (lib.mkRemovedOptionModule [ "boot" "initrd" "systemd" "enable" ] ''
-        Scripted initrd has been removed.
-      '')
       (lib.mkRemovedOptionModule [ "boot" "initrd" "systemd" "strip" ] ''
         The option to strip ELF files in initrd has been removed.
         It only saved ~1MiB of initramfs size, but caused a few issues
